@@ -33,13 +33,13 @@ def extract(table):
     
     return data
 
-actor_name = input("Digite o nome do ator ou da atriz: ").replace(" ", "_")
+actor_name = input("Digite o nome do ator ou da atriz: ")
 
-link = f"https://pt.wikipedia.org/wiki/Filmografia_de_{actor_name}"
+link = f"https://pt.wikipedia.org/wiki/Filmografia_de_" + actor_name.replace(" ", "_")
 request = requests.get(link)
 site = BeautifulSoup(request.text, "html.parser")
 if site.text.find("A Wikipédia não possui um artigo com este nome exato") != -1:
-    link = f"https://pt.wikipedia.org/wiki/{actor_name}"
+    link = f"https://pt.wikipedia.org/wiki/" + actor_name.replace(" ", "_")
     request = requests.get(link)
     site = BeautifulSoup(request.text, "html.parser")
     
@@ -64,5 +64,6 @@ df = pd.DataFrame(data, columns=columns)
 
 movies_by_year = df.groupby(["Year"]).count()
 movies_by_year.plot(kind="bar")
+plt.title(f"Movies per year of {actor_name}")
 plt.show()
 print(df)
