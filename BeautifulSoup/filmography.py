@@ -12,28 +12,33 @@ def extract(table):
     year = ""
     same_year = False
     rowspan = 0
-    for row in rows:
-        td = row.find_all("td")
-        if len(td) == 0: 
+    for row in rows[1:]:        
+        cells = row.find_all("th")
+        cells.extend(row.find_all("td"))
+        
+        if len(cells) != 1:
+            if not same_year:
+                rowspan = int(cells[0]["rowspan"]) if 'rowspan' in cells[0].attrs else 0
+                same_year = rowspan > 0
+                year = cells[0]
+                title = cells[1]
+            else:
+                title = cells[0]
+        else:
+            year = cells[0]
+            rowspan = int(cells[0]["rowspan"]) if 'rowspan' in cells[0].attrs else 0
+            same_year = rowspan > 0
             continue
         
-        title = td[1].text.replace("\n", "")
+        arr = [year.text.replace("\n", ""), title.text.replace("\n", ""), rowspan]
+        data.append(arr)
         
-        if not same_year:
-            rowspan = int(td[0]["rowspan"]) if 'rowspan' in td[0].attrs else 0
-            same_year = rowspan is not None
-            year = td[0].text.replace("\n", "")
-        else:
-            title = td[0].text.replace("\n", "")
-        
-        data.append((year, title))
         rowspan = rowspan - 1
-        
         same_year = rowspan > 0
     
     return data
 
-actor_name = input("Digite o nome do ator ou da atriz: ")
+actor_name = input("Digite o nome do ator ou da atriz: ") or "Fernanda Montenegro"
 
 link = f"https://pt.wikipedia.org/wiki/Filmografia_de_" + actor_name.replace(" ", "_")
 request = requests.get(link)
@@ -50,6 +55,7 @@ for id in ids:
     except:
         pass
     else:
+        
         break
 
 table = heading.findNextSibling()
@@ -59,11 +65,11 @@ while table.name != "table":
 
 data = extract(table)
 
-columns = ["Year", "Title"]
+columns = ["Year", "Title", "n"]
 df = pd.DataFrame(data, columns=columns)
 
-movies_by_year = df.groupby(["Year"]).count()
-movies_by_year.plot(kind="bar")
-plt.title(f"Movies per year of {actor_name}")
-plt.show()
+# movies_by_year = df.groupby(["Year"]).count()
+# movies_by_year.plot(kind="bar")
+# plt.title(f"Movies per year of {actor_name}")
+# plt.show()
 print(df)
