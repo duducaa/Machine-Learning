@@ -30,7 +30,7 @@ def extract(table):
             same_year = rowspan > 0
             continue
         
-        arr = [year.text.replace("\n", ""), title.text.replace("\n", ""), rowspan]
+        arr = [year.text.replace("\n", ""), title.text.replace("\n", "")]
         data.append(arr)
         
         rowspan = rowspan - 1
@@ -48,7 +48,7 @@ if site.text.find("A Wikipédia não possui um artigo com este nome exato") != -
     request = requests.get(link)
     site = BeautifulSoup(request.text, "html.parser")
     
-ids = ["Filmografia", "Cinema", "Filmes", "Filme"]
+ids = ["Filmografia", "Cinema", "Filmes", "Filme", "Como ator", "Como atriz"]
 for id in ids:
     try:
         heading = site.find("h2", id=id).findParent()
@@ -65,11 +65,12 @@ while table.name != "table":
 
 data = extract(table)
 
-columns = ["Year", "Title", "n"]
+columns = ["Year", "Title"]
 df = pd.DataFrame(data, columns=columns)
+df.loc[~df["Year"].str.match(r"\b\d{4}\b"), "Year"] = "Not informed"
 
-# movies_by_year = df.groupby(["Year"]).count()
-# movies_by_year.plot(kind="bar")
-# plt.title(f"Movies per year of {actor_name}")
-# plt.show()
+movies_by_year = df.groupby(["Year"]).count()
+movies_by_year.plot(kind="bar")
+plt.title(f"Movies per year of {actor_name}")
+plt.show()
 print(df)
